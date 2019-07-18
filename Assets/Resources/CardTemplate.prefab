@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1940603499722210}
+  m_IsPrefabAsset: 1
+--- !u!1 &1940603499722210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 224758736974304156}
+  - component: {fileID: 222571562937901510}
+  - component: {fileID: 114042136321132802}
+  - component: {fileID: 114833839880006302}
+  m_Layer: 5
+  m_Name: CardTemplate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &114042136321132802
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1940603499722210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_Sprite: {fileID: 21300000, guid: bd1885dcc8b8e414ca1d73c0ac724ab4, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+--- !u!114 &114833839880006302
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1940603499722210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4efbec98fb1ffda49b1d498b1bb6d9f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardImage: {fileID: 114593564111868784, guid: a17ed27262c5fde46aef65c6a9472569,
+    type: 2}
+  cardSprites:
+  - {fileID: 21300000, guid: bd1885dcc8b8e414ca1d73c0ac724ab4, type: 3}
+  - {fileID: 21300000, guid: 58355d505f0a03348bfa657c39da38af, type: 3}
+  - {fileID: 21300000, guid: 4494e521f52551b4f81f878b163ed987, type: 3}
+  - {fileID: 21300000, guid: 6c60b4019bcbd1642b53eb29d86ddcde, type: 3}
+  - {fileID: 21300000, guid: a6ddda08688106447af24ee7b37173ca, type: 3}
+  - {fileID: 21300000, guid: f694a6083d250674cb42cae8c190ce3b, type: 3}
+  - {fileID: 21300000, guid: f86ea73cf31418f448e8719cb6fec4fa, type: 3}
+  - {fileID: 21300000, guid: 51496606aee55764e95c0337282aec35, type: 3}
+  - {fileID: 21300000, guid: 3500650ae3e3af1409a2a380579cfbaa, type: 3}
+  - {fileID: 21300000, guid: 403f1f5b4d56d544a95bf8818e86f291, type: 3}
+  - {fileID: 21300000, guid: 6f527369dc0350a4d9c7be573cdf4563, type: 3}
+  - {fileID: 21300000, guid: 7bc6b8de4a27042499ccd2d634eda438, type: 3}
+  - {fileID: 21300000, guid: 4745ca52998f87f4ead013fd0f86c927, type: 3}
+  backSide: {fileID: 21300000, guid: 8ef841ccc91ae204bbc31f799d55137e, type: 3}
+  faceDown: 0
+  power: 4
+  OnDrag:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: IntEvent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  OnDragEnd:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+--- !u!222 &222571562937901510
+CanvasRenderer:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1940603499722210}
+  m_CullTransparentMesh: 0
+--- !u!224 &224758736974304156
+RectTransform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1940603499722210}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -73, y: 90}
+  m_SizeDelta: {x: 100, y: 133}
+  m_Pivot: {x: 0.5, y: 0.5}

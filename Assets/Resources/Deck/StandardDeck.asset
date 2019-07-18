@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba939955f61df6947ba678332eca5142, type: 3}
+  m_Name: StandardDeck
+  m_EditorClassIdentifier: 
+  type: 0
+  cards:
+  - {fileID: 11400000, guid: 67d91ad2d4fc5974d9ef43f23d2d28f6, type: 2}
+  - {fileID: 11400000, guid: 5fb6539e77d8ed045a9100822207a426, type: 2}
+  - {fileID: 11400000, guid: 65709850ee1c7554db39874c87e80044, type: 2}
+  - {fileID: 11400000, guid: de2751ed196337d4f9d993a22ba53c41, type: 2}
+  - {fileID: 11400000, guid: 695ec8329a8af7b40afe5ef78b337617, type: 2}
+  - {fileID: 11400000, guid: a40167ffe161f5d45a951dc51209dc23, type: 2}
+  - {fileID: 11400000, guid: 226622eb4095e6c4fb6d41d0dbc6dd14, type: 2}
+  - {fileID: 11400000, guid: bd2a98b6a3bfd3f4fba33e6993737b6c, type: 2}
+  - {fileID: 11400000, guid: ec887bf71d00cbf4aa4db1535beb8fec, type: 2}
+  - {fileID: 11400000, guid: 07960c2ff05dbd44ea8fe617c3a1d689, type: 2}
+  - {fileID: 11400000, guid: 47dfbbc091d0d3e49931befce08c9643, type: 2}
+  - {fileID: 11400000, guid: b8612cfdd9b84584a96495bfe5ca97dd, type: 2}
+  - {fileID: 11400000, guid: 7c01c92eacb89d64a8807446f6ad03ed, type: 2}
+  backSprite: {fileID: 21300000, guid: 8ef841ccc91ae204bbc31f799d55137e, type: 3}
