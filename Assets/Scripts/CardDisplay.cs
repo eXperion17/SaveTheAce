@@ -34,6 +34,8 @@ public class CardDisplay : MonoBehaviour {
 	public bool locked;
 	public bool selected;
 
+	public bool haveBeenInBattle = false;
+
 	//Events
 	[HideInInspector]
 	public IntEvent OnDrag;
@@ -44,6 +46,8 @@ public class CardDisplay : MonoBehaviour {
 
 	public void SetCard(int power) {
 		this.power = power;
+		if (power < 2)
+			return;
 
 		//power - 2 due to the serverside running off of 2 to 14 and clientside (for sprites) 0 to 12.
 		cardImage.sprite = cardSprites[power - 2];
@@ -55,6 +59,9 @@ public class CardDisplay : MonoBehaviour {
 				if (power <= 10)
 					return;
 			}
+
+			if (haveBeenInBattle)
+				return;
 
 			faceDown = !faceDown;
 			if (faceDown)
@@ -91,6 +98,12 @@ public class CardDisplay : MonoBehaviour {
 		locked = true;
 		elementDragger.enableDragging = false;
 	}
+
+	public void OnBattlePhase() {
+		if (!faceDown)
+			haveBeenInBattle = true;
+	}
+
 
 
 	public void OnPickup(BaseEventData data) {

@@ -63,6 +63,7 @@ public class Server : MonoBehaviour {
 		NetworkServer.RegisterHandler(MsgType.AddPlayer, OnJoinLobby);
 		NetworkServer.RegisterHandler(AceMsgTypes.PlayerPlanningPhaseDone, OnPlayerPlanningPhaseDone);
 		NetworkServer.RegisterHandler(AceMsgTypes.BattlePhase_PlayerTurnFinish, OnPlayerTurnFinish);
+		NetworkServer.RegisterHandler(AceMsgTypes.BattlePhase_PlayerTurnSkip, OnPlayerTurnSkip);
 		//more here pls
 	}
 
@@ -83,7 +84,7 @@ public class Server : MonoBehaviour {
 
 	void OnJoinLobby(NetworkMessage netMessage) {
 		var player = netMessage.ReadMessage<JoinLobbyMessage>();
-		lobbyManager.AddPlayer(new ConnectedPlayer(netMessage.conn.connectionId, player.playerName, player.isPlayer));
+		lobbyManager.AddPlayer(new ConnectedPlayer(netMessage.conn.connectionId, player.playerName, player.isPlayer), netMessage.conn.connectionId);
 
 		//Send confirmation back to client
 		var confirmation = new LobbyJoinedSuccessfulMessage();
@@ -114,7 +115,6 @@ public class Server : MonoBehaviour {
 	}
 
 	public void SendHandToClients(string[] playerHands) {
-
 		for (int i = 0; i < lobbyManager.connectedClients.Count; i++) {
 			//Create the message with their newly updated hand
 			var message = new PlayerHandUpdateMessage();
@@ -166,27 +166,36 @@ public class Server : MonoBehaviour {
 			//info stuff
 			NetworkServer.SendToAll(AceMsgTypes.ObscuredPlayerInfo, GetObscurePlayerInfo(i));
 		}
-
-
+		
 		Invoke("SendBattlePhaseMessage", 1f);
 	}
 
 	public void SendBattlePhaseMessage() {
 		//Declare battle phase has started with an empty message
 		NetworkServer.SendToAll(AceMsgTypes.BattlePhaseStart, new MyNetworkMessage());
+		GameState.SetState(GameState.BattlePhase);
 
 		playerTurn = 0;
 		StartTurnsForPlayers();
 	}
 
 	private void StartTurnsForPlayers() {
-		if (playerTurn == (lobbyManager.GetParticipatingPlayers().Count-1)) {
+		if (playerTurn >= lobbyManager.GetParticipatingPlayers().Count && (GameState.currentState != GameState.PlanningPhase)) {
 			//Time to start
 			Debug.Log("Time to start planning again!");
-		}
+			gameManager.StartPlanningPhase(AceRules.Player_Draw_Count);
 
-		NetworkServer.SendToClient(playerTurn + 1, AceMsgTypes.BattlePhase_PlayerTurn, new MyNetworkMessage());
-		playerTurn++;
+		} else {
+			var player = lobbyManager.GetParticipatingPlayers()[playerTurn];
+			if ((player.HasBonusCard() && player.HasAttackCard()) || player.HasFaceUpAssassin()) {
+				NetworkServer.SendToClient(playerTurn + 1, AceMsgTypes.BattlePhase_PlayerTurn, new MyNetworkMessage());
+				playerTurn++;
+			} else {
+				//If the current player doesn't have a bonus card, we'll loop back to this method but go through the next player
+				playerTurn++;
+				StartTurnsForPlayers();
+			}
+		}
 	}
 
 	public void OnPlayerTurnFinish(NetworkMessage netMessage) {
@@ -194,7 +203,12 @@ public class Server : MonoBehaviour {
 
 		ProcessTurn(turn);
 
-		Debug.Log("fuckin hell just hold on ok");
+		if (gameManager.PlayersAlive() > 1)
+			Invoke("StartTurnsForPlayers", AceRules.Duration_Server_Wait_After_Attack);
+	}
+
+	public void OnPlayerTurnSkip(NetworkMessage netMessage) {
+		StartTurnsForPlayers();
 	}
 
 	private void ProcessTurn(PlayerTurnFinishMessage turn) {
@@ -206,44 +220,76 @@ public class Server : MonoBehaviour {
 		message.attackerCard = cardAttacking;
 		message.attackerName = attacker.playerName;
 		message.defenderName = defender.playerName;
+		if (turn.attackingAce) {
+			message.attackingAce = turn.attackingAce;
+			defender.GameOver();
+
+			if (gameManager.PlayersAlive() == 1) {
+				message.gameEnder = true;
+			}
+
+			SendTurnResultsToClients(attacker, defender, message);
+			return;
+		} 
 
 		message.attackCardPosition = turn.attackCardPosition;
 		message.defenseCardPosition = turn.defenseCardPosition;
 		message.bonusCardPosition = turn.bonusCardPosition;
 
-		//If the player is attacking a bonus card
-		if (turn.defenseCardPosition == -1) {
-			if (turn.bonusCardPosition == -1) {
-				//double check if there's actually no card on the defender's field
-				if (!defender.HasAnyDefenseCards()) {
-					message.attackerWon = true;
-					gameManager.LogInfo("Well... someone just died. Can I get a F in chat?");
-				} else {
-					gameManager.LogInfo("Yo someone's hacking? " + attacker.playerName + ", you got something to say?");
-				}
-				//if not, then defender's ded
-			} else {
-				//Send info, bonus card dies
-				message.attackerWon = true;
+		//atm hard-coded to be -7, cause it looks like a J
+		if (turn.attackCardPosition == -7) {
+			defender.discardPile.Add(defender.bonusField[turn.bonusCardPosition, 0]);
+			defender.bonusField[turn.bonusCardPosition, 0] = 0;
+			defender.bonusField[turn.bonusCardPosition, 1] = 0;
 
-				defender.discardPile.Add(defender.bonusField[turn.bonusCardPosition,0]);
-				defender.bonusField[turn.bonusCardPosition, 0] = 0;
-				defender.bonusField[turn.bonusCardPosition, 1] = 0;
+			attacker.discardPile.Add(attacker.GetAssassin());
+			attacker.RemoveAssassin();
+		} /*else if (turn.defenseCardPosition == -1 && turn.bonusCardPosition == -1) {
+			if (!defender.HasAnyDefenseCards()) {
+				defender.GameOver();
+			} else {
+				gameManager.LogInfo("HEY HEY, NO CHEATERS AROUND HERE, OK?");
+				//attacker.GameOver();
 			}
-		} else {
+		}*/
+		else {
 			//Regular attack on defense card
 			int cardDefending = GetCardAtPosition(defender, turn.defenseCardPosition, false);
 			message.defenderCard = cardDefending;
 
 			message.attackerWon = (GetCardStrength(attacker, turn.attackCardPosition, true) > GetCardStrength(defender, turn.defenseCardPosition, false));
+			//gameManager.LogInfo(GetCardStrength(attacker, turn.attackCardPosition, true) + " == " + GetCardStrength(defender, turn.defenseCardPosition, false));
 			message.tie = (GetCardStrength(attacker, turn.attackCardPosition, true) == GetCardStrength(defender, turn.defenseCardPosition, false));
+
+			if (AceRules.Two_Kills_All) {
+				if (cardAttacking == 2) {
+					if (AceRules.Two_Suicide_Effect)
+						message.tie = true;
+					message.attackerWon = true;
+				} else if (cardDefending == 2) {
+					if (AceRules.Two_Suicide_Effect)
+						message.tie = true;
+					message.attackerWon = false;
+				}
+			} else {
+				if (cardAttacking == 2 && cardDefending == 10) {
+					message.attackerWon = true;
+					if (AceRules.Two_Suicide_Effect)
+						message.tie = true;
+				}
+				else if (cardDefending == 2 && cardAttacking == 10) {
+					message.attackerWon = false;
+					if (AceRules.Two_Suicide_Effect)
+						message.tie = true;
+				}
+			}
 
 			if (message.tie) {
 				attacker.discardPile.Add(attacker.attackField[turn.attackCardPosition]);
 				attacker.attackField[turn.attackCardPosition] = 0;
 				defender.discardPile.Add(defender.defenseField[turn.defenseCardPosition]);
 				defender.defenseField[turn.defenseCardPosition] = 0;
-			} else {
+			} else if (defender.hasAce) {
 				if (message.attackerWon) {
 					defender.discardPile.Add(defender.defenseField[turn.defenseCardPosition]);
 					defender.defenseField[turn.defenseCardPosition] = 0;
@@ -254,9 +300,11 @@ public class Server : MonoBehaviour {
 			}
 		}
 
+		SendTurnResultsToClients(attacker, defender, message);
+	}
 
+	private void SendTurnResultsToClients(AcePlayer attacker, AcePlayer defender, TurnResultMessage message) {
 		//Send stuff back to clients
-
 		var players = lobbyManager.GetParticipatingPlayers();
 		for (int i = 0; i < players.Count; i++) {
 			var currPlayer = players[i];
@@ -272,12 +320,12 @@ public class Server : MonoBehaviour {
 
 		for (int j = 0; j < players.Count; j++) {
 			var currPlayer = players[j];
-			if (currPlayer.playerName != attacker.playerName || currPlayer.playerName != defender.playerName) {
+			if (currPlayer.playerName != attacker.playerName && currPlayer.playerName != defender.playerName) {
 				NetworkServer.SendToClient(currPlayer.connectionID, AceMsgTypes.BattlePhase_TurnResult, message);
 			}
 		}
-
 	}
+
 
 	/// <summary>
 	/// Gets the cards total strength, including any active bonus effects on the field.
@@ -289,14 +337,14 @@ public class Server : MonoBehaviour {
 	}
 
 	private int GetCardAtPosition(AcePlayer player, int cardPosition, bool attacker) {
+		if (cardPosition < 0)
+			return -7;
+
 		if (attacker)
 			return player.attackField[cardPosition];
 		else
 			return player.defenseField[cardPosition];
 	}
-
-
-
 
 	private string GetBonusCardsAsString(int[,] bonusField) {
 		string converted = "";

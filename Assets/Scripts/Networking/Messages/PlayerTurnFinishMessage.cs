@@ -9,4 +9,6 @@ public class PlayerTurnFinishMessage : MessageBase {
 	public int attackCardPosition;
 	public int defenseCardPosition;
 	public int bonusCardPosition;
+
+	public bool attackingAce;
 }

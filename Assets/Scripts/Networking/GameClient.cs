@@ -49,16 +49,16 @@ public class GameClient : Client {
 			OnLobbyJoinedEvent.Invoke();
 			actualConnectionID = msg.clientConnectionID;
 		}
-			
+
 	}
-	
+
 	public void OnLobbyUpdate(NetworkMessage netMessage) {
 		var msg = netMessage.ReadMessage<LobbyUpdateMessage>();
 
 		Debug.Log(msg.connectedPlayers);
 		//parsing list
 		string[] parsedPlayers = msg.connectedPlayers.Split('_');
-		
+
 		RefreshPlayerList(parsedPlayers);
 	}
 
@@ -67,7 +67,7 @@ public class GameClient : Client {
 		playerList.text = "";
 
 		for (int i = 0; i < players.Length; i++) {
-			playerList.text += (i+1) + "  " + players[i] + "\n";
+			playerList.text += (i + 1) + "  " + players[i] + "\n";
 		}
 	}
 
@@ -78,10 +78,14 @@ public class GameClient : Client {
 		GameState.SetState(GameState.PlanningPhase);
 		playingField.OnPlanningPhaseEndEvent.AddListener(OnPlanningPhaseEnd);
 		playingField.OnConfirmationAttack.AddListener(OnConfirmationAttack);
+		playingField.OnGameLoss.AddListener(OnGameLoss);
+		playingField.OnTurnSkip.AddListener(OnTurnSkip);
 		battleField.Init(int.Parse(msg.message));
 	}
 
 	public void OnHandUpdate(NetworkMessage netMessage) {
+		GameState.SetState(GameState.PlanningPhase);
+
 		var msg = netMessage.ReadMessage<PlayerHandUpdateMessage>();
 
 		playingField.AddCardsToHand(msg.hand);
@@ -90,18 +94,18 @@ public class GameClient : Client {
 	public void OnPlanningPhaseEnd(string hand, string attack, string defense, string bonus) {
 		//oh shit son
 		var msg = new PlayerPlanningPhaseDone();
-		msg.hand	= hand;
-		msg.attack	= attack;
+		msg.hand = hand;
+		msg.attack = attack;
 		msg.defense = defense;
-		msg.bonus	= bonus;
-		msg.connID	= actualConnectionID;
+		msg.bonus = bonus;
+		msg.connID = actualConnectionID;
 
 		client.Send(AceMsgTypes.PlayerPlanningPhaseDone, msg);
 	}
 
 	private void OnPlayerInfoRecieve(NetworkMessage netMessage) {
 		var msg = netMessage.ReadMessage<ObscuredPlayerInfoMessage>();
-		
+
 		if (actualConnectionID == msg.connID) {
 			Debug.Log("This is me!!! Ignoring it tho");
 			return;
@@ -116,7 +120,7 @@ public class GameClient : Client {
 		playingField.OnBattlePhaseStart();
 
 		OnBattlePhaseStartEvent.Invoke();
-		battleField.DisplayEnemy(0);
+		//battleField.DisplayEnemy(0);
 	}
 
 	private void OnPlayerTurn(NetworkMessage netMessage) {
@@ -130,6 +134,8 @@ public class GameClient : Client {
 		message.bonusCardPosition = bonusID;
 		message.enemyName = enemyName;
 		message.attackerName = nameInput.text;
+		//Had to move it to GameClient as UnityEvent can only support sending 4 arguments total
+		message.attackingAce = (playingField.targetCard == battleField.enemyAce.transform.GetChild(0).GetComponent<CardDisplay>());
 
 		client.Send(AceMsgTypes.BattlePhase_PlayerTurnFinish, message);
 	}
@@ -137,10 +143,17 @@ public class GameClient : Client {
 	public void OnBattleTurnResult(NetworkMessage netMessage) {
 		var msg = netMessage.ReadMessage<TurnResultMessage>();
 
-		Debug.Log("whelp");
+		playingField.ProcessBattleTurn(msg, nameInput.text);
+
 	}
 
+	public void OnTurnSkip() {
+		client.Send(AceMsgTypes.BattlePhase_PlayerTurnSkip, new MyNetworkMessage());
+	}
 
+	private void OnGameLoss() {
+		//client.Disconnect();
+	}
 
 	public void Update() {
 		if (Input.GetKey(KeyCode.R)) {

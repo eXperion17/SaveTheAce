@@ -28,13 +28,36 @@ public class BattleField : MonoBehaviour {
 
 	public void ProcessPlayer(ObscuredPlayerInfoMessage msg) {
 		//int id = msg.connID - 1;
-		enemies.Add(new OtherPlayer(msg));
-	}
+		var enemy = GetEnemyByName(msg.playerName);
 
+		if (enemy != null) {
+			enemy.UpdateInfo(msg);
+		} else {
+			enemies.Add(new OtherPlayer(msg));
+		}
+
+		//If we just updated the enemy that we're currently displaying on the screen, refresh it
+		if (enemies[currentEnemyID].playerName == msg.playerName) {
+			DisplayEnemy(currentEnemyID);
+		}
+	}
 
 	public void DisplayEnemy(int id) {
 		var player = enemies[id];
+		DisplayEnemy(player);
+	}
 
+	public void DisplayEnemy(string name) {
+		var player = enemies.Find(x => x.playerName == name);
+		DisplayEnemy(player);
+	}
+
+	public void DisplayEnemy(OtherPlayer player) {
+		var playerIndex = enemies.FindIndex(x => x == player);
+		/*if (playerIndex == currentEnemyID)
+			return;*/
+
+		currentEnemyID = playerIndex;
 		enemyName.text = player.playerName;
 
 		//Attack
@@ -48,11 +71,12 @@ public class BattleField : MonoBehaviour {
 	}
 
 
+
 	private void BalanceCards(GameObject cardsContainer, OtherPlayer player, int diff, bool rotate) {
 		//If there are more cards visually then the player has, remove the difference in card count
 		if (diff < 0) {
 			for (int i = 0; i < Math.Abs(diff); i++) {
-				Destroy(cardsContainer.transform.GetChild(0));
+				Destroy(cardsContainer.transform.GetChild(0).gameObject);
 			}
 			//Otherwise just add extra cards for each
 		}
@@ -75,8 +99,11 @@ public class BattleField : MonoBehaviour {
 	/// </summary>
 	private void BalanceBonusCards(OtherPlayer player) {
 		//fuck it just clear everything
-		for (int i = 0; i < enemyBonus.transform.childCount; i++) {
-			Destroy(enemyBonus.transform.GetChild(0));
+		int count = enemyBonus.transform.childCount;
+		for (int i = 0; i < count; i++) {
+			var obj = enemyBonus.transform.GetChild(0);
+			obj.transform.SetParent(transform.parent.parent);
+			Destroy(obj.gameObject);
 		}
 
 		for (int i = 0; i < player.bonusCards.Length; i++) {
@@ -117,6 +144,26 @@ public class BattleField : MonoBehaviour {
 			DisplayEnemy(enemies.Count-1);
 		else
 			DisplayEnemy(currentEnemyID - 1);
+	}
+
+	public CardDisplay GetAttackCard(int cardID) {
+		return enemyAttack.transform.GetChild(cardID).GetComponent<CardDisplay>();
+	}
+
+	public CardDisplay GetDefenseCard(int cardID) {
+		return enemyDefense.transform.GetChild(cardID).GetComponent<CardDisplay>();
+	}
+
+	public CardDisplay GetBonusCard(int cardID) {
+		return enemyBonus.transform.GetChild(cardID).GetComponent<CardDisplay>();
+	}
+
+	private OtherPlayer GetEnemyByName(string name) {
+		for (int i = 0; i < enemies.Count; i++) {
+			if (enemies[i].playerName == name)
+				return enemies[i];
+		}
+		return null;
 	}
 
 }

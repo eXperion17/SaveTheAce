@@ -16,4 +16,7 @@ public class TurnResultMessage : MessageBase {
 	public int attackCardPosition;
 	public int defenseCardPosition;
 	public int bonusCardPosition;
+
+	public bool attackingAce;
+	public bool gameEnder;
 }

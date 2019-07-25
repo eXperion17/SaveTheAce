@@ -16,24 +16,29 @@ public class GameManager : MonoBehaviour {
 
 
 	public void StartGame() {
-		GameState.SetState(GameState.PlanningPhase);
-
-		players = lobby.GetParticipatingPlayers();
-
-
-		ShuffleCards(players);
+		StartPlanningPhase(AceRules.Player_StartingHand_Count);
 		OnStartGame.Invoke();
 
 		LogInfo("Game has started lads!!!");
 	}
 
+	public void StartPlanningPhase(int count) {
+		LogInfo("Starting Planning Phase!");
+		GameState.SetState(GameState.PlanningPhase);
+		players = lobby.GetParticipatingPlayers();
+
+		players.ForEach(x => x.isDonePlanning = false);
+
+		DrawCards(players, count);
+	}
+
 	/// <summary>
 	/// Shuffles the cards for each AcePlayer and tells Server to send it to the respective Clients
 	/// </summary>
-	private void ShuffleCards(List<AcePlayer> players) {
-		string[] playerHands = new string[4];
+	private void DrawCards(List<AcePlayer> players, int count) {
+		string[] playerHands = new string[count];
 		for (int i = 0; i < players.Count; i++) {
-			List<int> playerHand = players[i].ShuffleCards(3);
+			List<int> playerHand = players[i].DrawCards(count);
 
 			playerHands[i] = ConvertToString(playerHand);
 		}
@@ -60,13 +65,12 @@ public class GameManager : MonoBehaviour {
 		//Check if all present players are done planning
 		bool someoneNotReady = false;
 		foreach(AcePlayer player in players) {
-			if (!player.isDonePlanning)
+			if (!player.isDonePlanning && player.hasAce)
 				someoneNotReady = true;
 		}
 
 		if (!someoneNotReady) {
 			//Start battle phase!!!
-			LogInfo("O SHIT LETS GO BOYS");
 
 			Invoke("StartBattlePhase", 1f);	
 		}
@@ -81,4 +85,15 @@ public class GameManager : MonoBehaviour {
 		logger.text = info + "\n" + logger.text;
 	}
 
+	internal int PlayersAlive() {
+		int aliveCount = 0;
+
+		foreach (var player in players) {
+			if (player.hasAce) {
+				aliveCount++;
+			}
+		}
+
+		return aliveCount;
+	}
 }

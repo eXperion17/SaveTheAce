@@ -29,6 +29,9 @@ public class AcePlayer {
 		attackField = new int[4];
 		defenseField = new int[4];
 		bonusField = new int[3,2];
+		hasAce = true;
+
+		drawPile = drawPile.OrderBy(x => UnityEngine.Random.value).ToList();
 	}
 
 	/// <summary>
@@ -40,15 +43,30 @@ public class AcePlayer {
 		drawPile = drawPile.OrderBy(x => UnityEngine.Random.value).ToList();
 
 		//Draw 3 cards & remove those 3 from the drawPile
-		List<int> handDraw;
-		handDraw = drawPile.GetRange(0, startingHandCount);
-		drawPile.RemoveRange(0, startingHandCount);
+		List<int> handDraw = DrawCards(startingHandCount);
 
 		//TODO: DEBUG PURPOSES ONLY
 		handDraw.Add(12);
 
 		return handDraw;
 	}
+
+	public List<int> DrawCards(int amount) {
+		var cards = new List<int>();
+		if (drawPile.Count == 0)
+			return cards;
+
+		if (drawPile.Count < amount) {
+			cards = drawPile.GetRange(0, drawPile.Count);
+			drawPile.RemoveRange(0, drawPile.Count);
+		} else {
+			cards = drawPile.GetRange(0, amount);
+			drawPile.RemoveRange(0, amount);
+		}
+		
+		return cards;
+	}
+
 
 	public void ProcessPlanningPhase(PlayerPlanningPhaseDone player) {
 		hand = Extensions.ParseStringIntoList(player.hand);
@@ -90,6 +108,56 @@ public class AcePlayer {
 	public bool HasAnyDefenseCards() {
 		foreach (int power in defenseField) {
 			if (power > 1)
+				return true;
+		}
+
+		return false;
+	}
+
+	public bool HasBonusCard() {
+		for (int i = 0; i < bonusField.GetLength(0); i++) {
+			if (bonusField[i, 0] > 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public bool HasAttackCard() {
+		foreach (int power in attackField) {
+			if (power > 1)
+				return true;
+		}
+
+		return false;
+	}
+
+	public int GetAssassin() {
+		for (int i = 0; i < bonusField.GetLength(0); i++) {
+			if (bonusField[i, 0] == 11) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public void RemoveAssassin() {
+		for (int i = 0; i < bonusField.GetLength(0); i++) {
+			if (bonusField[i, 0] == 11) {
+				bonusField[i, 0] = 0;
+			}
+		}
+	}
+
+	public void GameOver() {
+		hasAce = false;
+		attackField = defenseField = new int[4];
+		bonusField = new int[3, 2];
+	}
+
+	public bool HasFaceUpAssassin() {
+		for (int i = 0; i < bonusField.GetLength(0); i++) {
+			if (bonusField[i, 0] == 11 && bonusField[i, 1] == 0)
 				return true;
 		}
 

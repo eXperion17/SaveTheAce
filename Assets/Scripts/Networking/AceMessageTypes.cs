@@ -11,7 +11,8 @@ public class AceMsgTypes {
 	public const short BattlePhaseStart				= 107; //Server -> All Clients
 
 	public const short BattlePhase_PlayerTurn		= 108; //Server -> Client
-	public const short BattlePhase_PlayerTurnFinish = 109; //Client -> Server
-	public const short BattlePhase_TurnResult		= 110; //Server -> All Clients
+	public const short BattlePhase_PlayerTurnSkip	= 109; //Client -> Server
+	public const short BattlePhase_PlayerTurnFinish = 110; //Client -> Server
+	public const short BattlePhase_TurnResult		= 111; //Server -> All Clients
 
 }

@@ -27,4 +27,15 @@ public class OtherPlayer {
 		playerName = msg.playerName;
 		hasAce = msg.hasAce;
 	}
+
+	public void UpdateInfo(ObscuredPlayerInfoMessage msg) {
+		drawPileCount = msg.drawPileCount;
+		discardPileCount = msg.discardPileCount;
+		handCount = msg.handCount;
+
+		attackCardCount = msg.attackCount;
+		defenseCardCount = msg.defenseCount;
+		bonusCards = Extensions.ParseStringIntoIntArray(msg.bonus, 3);
+		hasAce = msg.hasAce;
+	}
 }

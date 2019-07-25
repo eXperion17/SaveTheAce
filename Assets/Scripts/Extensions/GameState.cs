@@ -18,6 +18,7 @@ public class GameState {
 	}
 
 	public static void SetState(short st) {
+		Debug.Log("Setting State: " + st);
 		state = st;
 	}
 

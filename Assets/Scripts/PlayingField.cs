@@ -9,30 +9,37 @@ public class PlayingField : MonoBehaviour {
 	public GameObject playerHand, attackField, defenseField, bonusField, AceField;
 	public GameObject cardPrefab;
 
-	public GameObject inputBlocker, readyButton, waitingTurn, confirmation;
+	public GameObject inputBlocker, readyButton, waitingTurn, confirmation, gameOver, skipTurn;
 	public BattleField battleField;
 
 	[Header("TextFields")]
 	public TMPro.TextMeshProUGUI attackText;
-	public TMPro.TextMeshProUGUI defenseText, bonusText;
+	public TMPro.TextMeshProUGUI defenseText, bonusText, gameOverText;
+	
 
 	[Header("Events")]
 	public PlayerCardsEvent OnPlanningPhaseEndEvent;
 	public PlayerAttackEvent OnConfirmationAttack;
+	public UnityEvent OnGameLoss, OnTurnSkip;
 
 	[Header("Battle Select Cards")]
 	public CardDisplay attackCard;
 	public CardDisplay targetCard;
+	private bool usingAssassin;
 
 	private void Start() {
 		//AddCardsToHand("4_6_8_13");
-		readyButton.SetActive(true);
 		var cardObj = battleField.enemyAce.transform.GetChild(0);
-
+		usingAssassin = false;
+		skipTurn.SetActive(false);
 		cardObj.GetComponent<CardDisplay>().OnSelect.AddListener(OnCardSelect);
 	}
 
 	public void AddCardsToHand(string hand) {
+		waitingTurn.SetActive(false);
+		confirmation.SetActive(false);
+		readyButton.SetActive(true);
+
 		string[] cards = hand.Split('_');
 		for (int i = 0; i < cards.Length; i++) {
 			AddCardToHand(int.Parse(cards[i]));
@@ -135,18 +142,26 @@ public class PlayingField : MonoBehaviour {
 	}
 
 	public void OnBattlePhaseStart() {
+		//atm only bonus card, because they will have flipping functionality IF they didn't battle
+		for (int i = 0; i < bonusField.transform.childCount; i++) {
+			bonusField.transform.GetChild(i).GetComponent<CardDisplay>().OnBattlePhase();
+		}
+
 		waitingTurn.SetActive(true);
 	}
 
 	public void StartTurn() {
+		skipTurn.SetActive(true);
 		waitingTurn.SetActive(false);
 	}
 
+	//Don't look if hacky code makes you sick
 	public void OnCardSelect(CardDisplay card) {
 		if (GameState.currentState == GameState.BattlePhase) {
-			//If the card is actually in attack mode
+			//To make things a bit quicker, we automatically toggle the selection
 			card.ToggleSelection(true);
 
+			//If we card we're clicking is in the attack field, make that our ATTACK card
 			if (card.transform.IsChildOf(attackField.transform)) {
 				if (attackCard && card == attackCard) {
 					attackCard.ToggleSelection(false);
@@ -159,7 +174,8 @@ public class PlayingField : MonoBehaviour {
 					attackCard = card;
 				}
 			}
-			else if (card.transform.IsChildOf(battleField.enemyDefense.transform)) {
+			//If we card we're clicking is in the enemy's defense field, make that our TARGET card
+			else if (card.transform.IsChildOf(battleField.enemyDefense.transform) && (attackCard && attackCard.power != 11)) {
 				if (targetCard && card == targetCard) {
 					targetCard.ToggleSelection(false);
 					targetCard = null;
@@ -170,8 +186,9 @@ public class PlayingField : MonoBehaviour {
 					targetCard = card;
 				}
 			}
-			//If there's no defense cards on the enemy & selecting a bonus card
-			else if (battleField.enemyDefense.transform.childCount == 0 && card.transform.IsChildOf(battleField.enemyBonus.transform)) {
+			//If there's no defense cards on the enemy, we can select the Ace instead
+			else if (battleField.enemyDefense.transform.childCount == 0 && card.transform.IsChildOf(battleField.enemyAce.transform) && 
+					(attackCard && attackCard.power != 11)) {
 				if (targetCard && card == targetCard) {
 					targetCard.ToggleSelection(false);
 					targetCard = null;
@@ -181,9 +198,23 @@ public class PlayingField : MonoBehaviour {
 						targetCard.ToggleSelection(false);
 					targetCard = card;
 				}
-			} else if (battleField.enemyDefense.transform.childCount == 0 &&
-					   battleField.enemyBonus.transform.childCount == 0 &&
-					   card.transform.IsChildOf(battleField.enemyAce.transform)) {
+			}
+			//Bonus/Joker/Boer assassinations
+			else if (card.power == 11 && !card.faceDown) {
+				if ((targetCard && targetCard.transform.IsChildOf(battleField.enemyDefense.transform)) || (targetCard && targetCard.transform.IsChildOf(battleField.enemyAce.transform))) {
+					//Clearing the target card in case the player still had that one selected that wouldn't work with 
+					targetCard.ToggleSelection(false);
+					targetCard = null;
+				}
+				//No need to include the else statement (with every other similar example) because there will only be one assassination card
+				if (attackCard && card == attackCard) {
+					attackCard.ToggleSelection(false);
+					attackCard = null;
+				} else {
+					attackCard = card;
+				}
+				
+			} else if (card.transform.IsChildOf(battleField.enemyBonus.transform) && attackCard.power == 11) {
 				if (targetCard && card == targetCard) {
 					targetCard.ToggleSelection(false);
 					targetCard = null;
@@ -199,14 +230,26 @@ public class PlayingField : MonoBehaviour {
 		}
 
 		if (attackCard && targetCard) {
+			usingAssassin = (attackCard.power == 11);
+
 			confirmation.SetActive(true);
 		}
 	}
+
+	public void SkipTurn() {
+		OnTurnSkip.Invoke();
+		waitingTurn.SetActive(true);
+		skipTurn.SetActive(false);
+	}
+
 
 	public void ConfirmTurn() {
 		int attackCardPos = Extensions.FindObjectIndexWithinParent(attackField.transform, attackCard.transform);
 		int defenseCardPos = Extensions.FindObjectIndexWithinParent(battleField.enemyDefense.transform, targetCard.transform);
 		int bonusCardPos = -1;
+
+		if (usingAssassin)
+			attackCardPos = -7;
 
 		//If there's no defense card selected, check the bonus one
 		if (defenseCardPos == -1)
@@ -216,11 +259,121 @@ public class PlayingField : MonoBehaviour {
 		confirmation.SetActive(false);
 	}
 
+	public void ProcessBattleTurn(TurnResultMessage msg, string ourName) {
+		//We divide this up in two parts, as the mobile variant can't witness the complete battle between two enemies
+		if (msg.attackerName == ourName || msg.defenderName == ourName) {
+			//Make sure the defender is looking at the attacker
+			if (msg.defenderName == ourName)
+				battleField.DisplayEnemy(msg.attackerName);
+
+			if (msg.attackingAce) {
+				if (msg.attackerName == ourName) {
+					//Destroy(battleField.enemyAce.transform.GetChild(0));
+					CancelTurn();
+					if (msg.gameEnder) {
+						gameOverText.text = "GOTTEM! You've offically {i}saved your ace{/i}!";
+						gameOver.SetActive(true);
+						OnGameLoss.Invoke();
+					} else {
+						waitingTurn.SetActive(true);
+						skipTurn.SetActive(false);
+					}
+					
+				} else {
+					gameOverText.text = "Too bad! " + msg.attackerName + " de_stroyed your ace! \n\nF in chat boys";
+					gameOver.SetActive(true);
+					OnGameLoss.Invoke();
+				}
+
+				return;
+			}
+			
+			//Display the relevant cards with the info
+			List<CardDisplay> losingCards = new List<CardDisplay>();
+			//Sequence if we're the attacker
+			if (msg.attackerName == ourName) {
+				//Check whether we've just used a Joker/Boer/Assassin
+				if (msg.attackCardPosition == -7) {
+					//Get both bonus cards and flag them for removal
+					losingCards.Add(GetAssassin(false));
+					losingCards.Add(battleField.GetBonusCard(msg.bonusCardPosition));
+				} else {
+					//Otherwise check for both cards, removing both if its a tie OR only the losing one
+					var defCard = battleField.GetDefenseCard(msg.defenseCardPosition);
+					defCard.SetCard(msg.defenderCard);
+					if (msg.tie) {
+						losingCards.Add(defCard);
+						losingCards.Add(attackField.transform.GetChild(msg.attackCardPosition).GetComponent<CardDisplay>());
+					}
+					else {
+						losingCards.Add(msg.attackerWon ? defCard : attackField.transform.GetChild(msg.attackCardPosition).GetComponent<CardDisplay>());
+					}
+				}
+			} else {
+				if (msg.attackCardPosition == -7) {
+					losingCards.Add(GetAssassin(true));
+					losingCards.Add(bonusField.transform.GetChild(msg.bonusCardPosition).GetComponent<CardDisplay>());
+				} else {
+					var attCard = battleField.GetAttackCard(msg.attackCardPosition);
+					attCard.SetCard(msg.attackerCard);
+					if (msg.tie) {
+						losingCards.Add(attCard);
+						losingCards.Add(defenseField.transform.GetChild(msg.defenseCardPosition).GetComponent<CardDisplay>());
+					}
+					else {
+						losingCards.Add(msg.attackerWon ? defenseField.transform.GetChild(msg.defenseCardPosition).GetComponent<CardDisplay>() : attCard);
+					}
+				}
+			}
+			
+			//Let the player see the relevant cards before removing them
+			StartCoroutine(DelayedBattleResults(losingCards));
+		} else {
+			//TODO: Process the actual changes into the OtherPlayers classes?
+			//TODO: Make a logger
+			if (msg.attackerWon)
+				Debug.Log(msg.attackerName + " attacked " + msg.defenderName + " and won! " + msg.defenderName + " loses their card in position " + msg.defenseCardPosition + "!");
+			else
+				Debug.Log(msg.attackerName + " attacked " + msg.defenderName + " and lost! " + msg.attackerName + " loses their card in position " + msg.attackCardPosition + "!");
+		}
+	}
+
+	private CardDisplay GetAssassin(bool enemy) {
+		var carrier = enemy ? battleField.enemyBonus.transform : bonusField.transform;
+
+		for (int i = 0; i < carrier.childCount; i++) {
+			var child = carrier.GetChild(i).GetComponent<CardDisplay>();
+			if (child.power == 11) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	private IEnumerator DelayedBattleResults(List<CardDisplay> losingCards) {
+		var state = true;
+		while (state) {
+			yield return new WaitForSeconds(AceRules.Duration_Client_Before_Deletion_Cards);
+			losingCards.ForEach(x => Destroy(x.gameObject));
+			CancelTurn();
+			waitingTurn.SetActive(true);
+			skipTurn.SetActive(false);
+			state = false;
+			yield return null;
+		}
+		yield return null;
+	}
+
 	public void CancelTurn() {
-		attackCard.ToggleSelection(false);
-		attackCard = null;
-		targetCard.ToggleSelection(false);
-		targetCard = null;
+		if (attackCard) {
+			attackCard.ToggleSelection(false);
+			attackCard = null;
+		}
+		
+		if (targetCard) {
+			targetCard.ToggleSelection(false);
+			targetCard = null;
+		}
 	}
 
 

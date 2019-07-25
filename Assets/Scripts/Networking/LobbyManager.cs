@@ -26,7 +26,7 @@ public class LobbyManager : MonoBehaviour {
 		ShowIP();
 	}
 
-	public void AddPlayer(ConnectedPlayer player) {
+	public void AddPlayer(ConnectedPlayer player, int id) {
 		connectedClients.Add(player);
 
 		UpdatePlayerList();
@@ -50,6 +50,21 @@ public class LobbyManager : MonoBehaviour {
 		}
 
 		List<AcePlayer> players = new List<AcePlayer>();
+		/*int playerCount = 0;
+		connectedClients.ForEach(x => { if (x.isPlayer) playerCount++; });
+
+		//Create dummies
+		for (int i = 0; i < playerCount; i++) {
+			players.Add(new AcePlayer(-1, ""));
+		}
+
+
+		for (int i = 0; i < playerCount; i++) {
+			if (connectedClients[i].isPlayer) {
+
+			}
+			
+		}*/
 
 		foreach (ConnectedPlayer player in connectedClients) {
 			if (player.isPlayer) {
