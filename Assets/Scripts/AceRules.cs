@@ -13,4 +13,9 @@ public class AceRules {
 	public const bool Two_Kills_All = false;
 	public const bool Hide_Enemy_Cards_After_Attack = false;
 	//public const bool Remember_Enemy_Cards = true;
+
+
+
+
+	public const string Unnamed_Player = "EMPTY";
 }

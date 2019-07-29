@@ -32,11 +32,18 @@ public class LobbyManager : MonoBehaviour {
 		UpdatePlayerList();
 	}
 
+	public void AdjustPlayer(int connectionId, string playerName) {
+		connectedClients[connectionId-1].name = playerName;
+
+		UpdatePlayerList();
+	}
+
 	private void UpdatePlayerList() {
 		playerList.text = "";
 
 		for (int i = 0; i < connectedClients.Count; i++) {
-			playerList.text += (i + 1) + "  " + connectedClients[i].name + "\n";
+			if (connectedClients[i].name != AceRules.Unnamed_Player)
+				playerList.text += (i + 1) + "  " + connectedClients[i].name + "\n";
 		}
 	}
 
@@ -50,22 +57,6 @@ public class LobbyManager : MonoBehaviour {
 		}
 
 		List<AcePlayer> players = new List<AcePlayer>();
-		/*int playerCount = 0;
-		connectedClients.ForEach(x => { if (x.isPlayer) playerCount++; });
-
-		//Create dummies
-		for (int i = 0; i < playerCount; i++) {
-			players.Add(new AcePlayer(-1, ""));
-		}
-
-
-		for (int i = 0; i < playerCount; i++) {
-			if (connectedClients[i].isPlayer) {
-
-			}
-			
-		}*/
-
 		foreach (ConnectedPlayer player in connectedClients) {
 			if (player.isPlayer) {
 				var acePlayer = new AcePlayer(player.id, player.name);
@@ -98,4 +89,5 @@ public class LobbyManager : MonoBehaviour {
 		}
 		return null;
 	}
+
 }

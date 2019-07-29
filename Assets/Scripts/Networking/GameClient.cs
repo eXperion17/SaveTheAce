@@ -67,7 +67,8 @@ public class GameClient : Client {
 		playerList.text = "";
 
 		for (int i = 0; i < players.Length; i++) {
-			playerList.text += (i + 1) + "  " + players[i] + "\n";
+			if (players[i] != AceRules.Unnamed_Player)
+				playerList.text += (i + 1) + "  " + players[i] + "\n";
 		}
 	}
 

@@ -73,7 +73,9 @@ public class Server : MonoBehaviour {
 
 	void OnClientConnected(NetworkMessage netMessage) {
 		// Do stuff when a client connects to this server
-		
+
+		//Add dummy
+		lobbyManager.AddPlayer(new ConnectedPlayer(netMessage.conn.connectionId, AceRules.Unnamed_Player, true), netMessage.conn.connectionId);
 	}
 
 	void OnClientDisconnected(NetworkMessage netMessage) {
@@ -84,7 +86,8 @@ public class Server : MonoBehaviour {
 
 	void OnJoinLobby(NetworkMessage netMessage) {
 		var player = netMessage.ReadMessage<JoinLobbyMessage>();
-		lobbyManager.AddPlayer(new ConnectedPlayer(netMessage.conn.connectionId, player.playerName, player.isPlayer), netMessage.conn.connectionId);
+		//lobbyManager.AddPlayer(new ConnectedPlayer(netMessage.conn.connectionId, player.playerName, player.isPlayer), netMessage.conn.connectionId);
+		lobbyManager.AdjustPlayer(netMessage.conn.connectionId, player.playerName);
 
 		//Send confirmation back to client
 		var confirmation = new LobbyJoinedSuccessfulMessage();

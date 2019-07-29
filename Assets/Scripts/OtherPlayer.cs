@@ -6,7 +6,7 @@ using UnityEngine;
 /// Data class, only used for clientside.
 /// </summary>
 public class OtherPlayer {
-
+	public int connectionID;
 	public string playerName;
 	public int drawPileCount, discardPileCount, handCount;
 
@@ -17,6 +17,7 @@ public class OtherPlayer {
 	public bool hasAce;
 
 	public OtherPlayer(ObscuredPlayerInfoMessage msg) {
+		connectionID = msg.connID;
 		drawPileCount = msg.drawPileCount;
 		discardPileCount = msg.discardPileCount;
 		handCount = msg.handCount;
