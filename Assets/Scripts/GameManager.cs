@@ -7,7 +7,6 @@ using UnityEngine.Events;
 public class GameManager : MonoBehaviour {
 	public LobbyManager lobby;
 	public Server gameServer;
-	
 
 	public List<AcePlayer> players;
 
@@ -39,6 +38,8 @@ public class GameManager : MonoBehaviour {
 		string[] playerHands = new string[count];
 		for (int i = 0; i < players.Count; i++) {
 			List<int> playerHand = players[i].DrawCards(count);
+
+			playerHand.ForEach(x => players[i].hand.Add(x));
 
 			playerHands[i] = ConvertToString(playerHand);
 		}

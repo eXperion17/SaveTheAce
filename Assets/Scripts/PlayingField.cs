@@ -271,7 +271,7 @@ public class PlayingField : MonoBehaviour {
 					//Destroy(battleField.enemyAce.transform.GetChild(0));
 					CancelTurn();
 					if (msg.gameEnder) {
-						gameOverText.text = "GOTTEM! You've offically {i}saved your ace{/i}!";
+						gameOverText.text = "GOTTEM! You've offically saved your ace!";
 						gameOver.SetActive(true);
 						OnGameLoss.Invoke();
 					} else {

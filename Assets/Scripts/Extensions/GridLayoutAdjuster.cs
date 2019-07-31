@@ -24,12 +24,17 @@ public class GridLayoutAdjuster : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		//Debug.Log(Screen.currentResolution.width + "  /  " + baseResolution.y);
-		/*int longest = (Screen.currentResolution.width > Screen.currentResolution.height) ? Screen.currentResolution.width : Screen.currentResolution.height;
+		int longest;
+		if (Screen.fullScreen)
+			longest = (Screen.currentResolution.width > Screen.currentResolution.height) ? Screen.currentResolution.width : Screen.currentResolution.height;
+		else
+			longest = 960;
+
 		float ratio = longest / baseResolution.y;
 
 		if (debugMode) {
 			Debug.Log(longest + " / " + baseResolution.y);
 		}
-		gridLayout.cellSize = baseCellSize * ratio;*/
+		gridLayout.cellSize = baseCellSize * ratio;
 	}
 }

@@ -457,7 +457,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c12e9dd2c90eda446a774ce9f396900e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 1
+  debugMode: 0
 --- !u!1 &151597866
 GameObject:
   m_ObjectHideFlags: 0
@@ -1190,12 +1190,12 @@ Prefab:
     - target: {fileID: 224226170270413380, guid: a17ed27262c5fde46aef65c6a9472569,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 110.36998
+      value: 196.17444
       objectReference: {fileID: 0}
     - target: {fileID: 224226170270413380, guid: a17ed27262c5fde46aef65c6a9472569,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -123.9798
+      value: -69.72791
       objectReference: {fileID: 0}
     - target: {fileID: 224226170270413380, guid: a17ed27262c5fde46aef65c6a9472569,
         type: 2}
@@ -1614,7 +1614,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.60814816, y: 0.8597488}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.2999878, y: -0.39999962}
+  m_AnchoredPosition: {x: -0.2999878, y: -0.3999939}
   m_SizeDelta: {x: 0.2999878, y: 1.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &525719909
@@ -1712,11 +1712,11 @@ MonoBehaviour:
     lineCount: 0
     pageCount: 0
     materialCount: 1
-  m_havePropertiesChanged: 0
+  m_havePropertiesChanged: 1
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_spriteAnimator: {fileID: 0}
-  m_isInputParsingRequired: 0
+  m_isInputParsingRequired: 1
   m_inputSource: 0
   m_hasFontAssetChanged: 0
   m_subTextObjects:
@@ -2067,7 +2067,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &601589487
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2534,7 +2534,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 72
+  m_fontSize: 36.6
   m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3076,7 +3076,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.113000005, y: 0.873133}
   m_AnchorMax: {x: 0.34800002, y: 1}
-  m_AnchoredPosition: {x: -0.2699585, y: 0.6579895}
+  m_AnchoredPosition: {x: -0.27001953, y: 0.6579895}
   m_SizeDelta: {x: 1.6000061, y: -0.20000076}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &828635051

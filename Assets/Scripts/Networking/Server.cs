@@ -15,6 +15,9 @@ public class Server : MonoBehaviour {
 	public LobbyManager lobbyManager;
 	public GameManager gameManager;
 
+	//Should've been put in gameManager but since 90% of the logic happens here anyway... whops.
+	public ServerObserver observer;
+
 	private int playerTurn;
 
 	//public PlayerPlanningPhaseDone[] plannedPlayers;
@@ -115,6 +118,7 @@ public class Server : MonoBehaviour {
 
 		//Start the actual game, shuffling cards n shit
 		gameManager.StartGame();
+		observer.StartObserving(gameManager.players);
 	}
 
 	public void SendHandToClients(string[] playerHands) {
@@ -127,6 +131,8 @@ public class Server : MonoBehaviour {
 
 			NetworkServer.SendToClient(lobbyManager.connectedClients[i].id, AceMsgTypes.PlayerHandUpdate, message);
 		}
+
+		observer.UpdatePlayers();
 	}
 
 	public void OnShuffleCards() {
@@ -139,6 +145,7 @@ public class Server : MonoBehaviour {
 		int playerID = netMessage.conn.connectionId - 1;
 
 		//Process the changes the player made inside the server > AcePlayer
+		//Debug.Log("Done planning: " + playerPlanning.hand);
 		gameManager.OnPlayerPlanningDone(playerID, playerPlanning);
 		gameManager.LogInfo(gameManager.players[playerID].playerName + " has finished planning!");
 	}
@@ -170,6 +177,7 @@ public class Server : MonoBehaviour {
 			NetworkServer.SendToAll(AceMsgTypes.ObscuredPlayerInfo, GetObscurePlayerInfo(i));
 		}
 		
+		observer.UpdatePlayers();
 		Invoke("SendBattlePhaseMessage", 1f);
 	}
 
@@ -205,6 +213,7 @@ public class Server : MonoBehaviour {
 		var turn = netMessage.ReadMessage<PlayerTurnFinishMessage>();
 
 		ProcessTurn(turn);
+		observer.UpdatePlayers();
 
 		if (gameManager.PlayersAlive() > 1)
 			Invoke("StartTurnsForPlayers", AceRules.Duration_Server_Wait_After_Attack);
@@ -229,6 +238,7 @@ public class Server : MonoBehaviour {
 
 			if (gameManager.PlayersAlive() == 1) {
 				message.gameEnder = true;
+				observer.ShowEndScreen(attacker.playerName);
 			}
 
 			SendTurnResultsToClients(attacker, defender, message);

@@ -163,4 +163,31 @@ public class AcePlayer {
 
 		return false;
 	}
+
+	public int CardsAttackCount() {
+		int count = 0;
+		foreach (int power in attackField) {
+			if (power > 1)
+				count++;
+		}
+		return count;
+	}
+
+	public int CardsDefenseCount() {
+		int count = 0;
+		foreach (int power in defenseField) {
+			if (power > 1)
+				count++;
+		}
+		return count;
+	}
+
+	public int CardsBonusCount() {
+		int count = 0;
+		foreach (int power in bonusField) {
+			if (power > 1)
+				count++;
+		}
+		return count;
+	}
 }
